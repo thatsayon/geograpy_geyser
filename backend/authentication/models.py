@@ -22,14 +22,11 @@ class CustomAccountManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
-        extra_fields.setdefault("role", "admin")
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Superuser must have is_staff=True."))
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
-        if extra_fields.get("role") != "admin":
-            raise ValueError(_("Superuser must have role='admin'."))
         return self.create_user(email, password, **extra_fields)
 
 
@@ -65,7 +62,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = CustomAccountManager()
 
     def __str__(self):
-        return f"{self.username} ({self.email})"
+        return f"{self.full_name} ({self.email})"
 
     def get_full_name(self):
         return self.full_name
@@ -73,3 +70,30 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("User Account")
         verbose_name_plural = _("User Accounts")
+
+class OTP(models.Model):
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False, unique=True
+    )
+    user = models.ForeignKey(
+        'UserAccount',  
+        on_delete=models.CASCADE,
+        related_name='otps',
+        verbose_name=_("User")
+    )
+    otp = models.CharField(_("otp"), max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        expiry_duration = getattr(settings, 'OTP_VALIDITY_DURATION', 5)  # minutes
+        return timezone.now() <= self.created_at + timezone.timedelta(minutes=expiry_duration)
+
+    def __str__(self):
+        return f"OTP({self.otp}) for {self.user.email}"
+
+    class Meta:
+        verbose_name = _("One-Time Password")
+        verbose_name_plural = _("One-Time Passwords")
+        indexes = [
+            models.Index(fields=['created_at']),  
+        ]
