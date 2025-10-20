@@ -69,3 +69,7 @@ celeryd.pid
 
 # CSV
 *.csv
+
+# static files
+/static/
+/staticfiles/
