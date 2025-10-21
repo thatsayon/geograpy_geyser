@@ -35,7 +35,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     email = models.EmailField(_("email address"), unique=True)
     full_name = models.CharField(_("full name"), max_length=50)
-    profile_pic = CloudinaryField('profile_pic')
+    profile_pic = CloudinaryField('profile_pic', blank=True, null=True)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
