@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 import uuid
 
 class CustomTime(models.Model):
@@ -113,3 +114,36 @@ class Questions(models.Model):
 
     def is_correct(self, answer):
         return answer == self.correct_answer
+
+class OptionModulesPair(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        unique=True
+    )
+    module_a = models.ForeignKey(
+        'Module',
+        on_delete=models.CASCADE,
+        related_name='pair_as_module_a'
+    )
+    module_b = models.ForeignKey(
+        'Module',
+        on_delete=models.CASCADE,
+        related_name='pair_as_module_b'
+    )
+    pair_number = models.PositiveIntegerField(
+        unique=True,
+        help_text="Must be unique — 1, 2, or 3 for Optional 1, 2, 3"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['module_a', 'module_b'],
+                name='unique_module_pair'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.module_a} - {self.module_b} (Pair {self.pair_number})"

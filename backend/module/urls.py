@@ -4,6 +4,7 @@ from .views import (
     CreateQuestionView,
     CustomTimeView,
     QuestionQuantityView,
+    OptionModulesPairView,
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('question/', CreateQuestionView.as_view(), name='Question'),
     path('custom-time/', CustomTimeView.as_view(), name='Custom Time'),
     path('question-quantity/', QuestionQuantityView.as_view(), name='Question Quality'),
+    path('optional-module/', OptionModulesPairView.as_view(), name='Optional Module'),
 ]

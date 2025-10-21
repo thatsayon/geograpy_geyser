@@ -7,12 +7,14 @@ from .models import (
     Questions,
     CustomTime,
     QuestionQuantity,
+    OptionModulesPair
 )
 from .serializers import (
     ModuleSerializer,
     QuestionSerializer,
     CustomTimeSerializer,
     QuestionQuantitySerializer,
+    OptionModulesPairSerializer,
 )
 
 class CreateModuleView(generics.ListCreateAPIView):
@@ -45,3 +47,8 @@ class QuestionQuantityView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = QuestionQuantitySerializer
     queryset = QuestionQuantity.objects.all()
+
+class OptionModulesPairView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = OptionModulesPairSerializer
+    queryset = OptionModulesPair.objects.all()

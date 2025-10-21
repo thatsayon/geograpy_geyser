@@ -38,7 +38,8 @@ INSTALLED_APPS = [
 # local apps
 INSTALLED_APPS += [
     'authentication',
-    'module'
+    'module',
+    'account',
 ]
 
 # third party apps
