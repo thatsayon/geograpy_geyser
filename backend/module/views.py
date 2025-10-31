@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from rest_framework import generics, status, permissions
 
 from .models import (
@@ -22,6 +23,18 @@ class CreateModuleView(generics.ListCreateAPIView):
     serializer_class = ModuleSerializer
     queryset = Module.objects.all()
 
+class DeleteModuleView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = ModuleSerializer
+    queryset = Module.objects.all()
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"msg": "module deleted"}, status=status.HTTP_200_OK)
+
+    
 class CreateQuestionView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = QuestionSerializer
