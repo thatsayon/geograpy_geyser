@@ -19,7 +19,7 @@ from .serializers import (
 )
 
 class CreateModuleView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ModuleSerializer
     queryset = Module.objects.all()
 
@@ -52,7 +52,7 @@ class CreateQuestionView(generics.ListCreateAPIView):
         serializer.save()
 
 class CustomTimeView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = CustomTimeSerializer
     queryset = CustomTime.objects.all()
 

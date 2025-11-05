@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin-api/', include('administration.urls')),
     path('auth/', include('authentication.urls')),
     path('module/', include('module.urls')),
+    path('student/', include('student.urls')),
 ]
 
 if settings.DEBUG:

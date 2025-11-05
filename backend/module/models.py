@@ -147,3 +147,5 @@ class OptionModulesPair(models.Model):
 
     def __str__(self):
         return f"{self.module_a} - {self.module_b} (Pair {self.pair_number})"
+
+# class k

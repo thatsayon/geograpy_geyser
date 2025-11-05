@@ -23,6 +23,32 @@ ALLOWED_HOSTS = [
     "*"
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://dihydric-yael-therianthropic.ngrok-free.dev",
+    "https://63dddx70-8000.inc1.devtunnels.ms",
+    "https://ballmastery.com",
+    "http://72.60.165.202:3000",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://72.60.165.202:3000",
+    "https://dihydric-yael-therianthropic.ngrok-free.dev",
+    "https://63dddx70-8000.inc1.devtunnels.ms",
+    "http://localhost:3000",
+    "https://ballmastery.com",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -33,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 # local apps
@@ -40,6 +67,7 @@ INSTALLED_APPS += [
     'authentication',
     'module',
     'account',
+    'student',
 ]
 
 # third party apps
@@ -55,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'
