@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     Module,
     Questions,
-    OptionModulesPair
+    OptionModulesPair,
 )
 
 admin.site.register(Module)

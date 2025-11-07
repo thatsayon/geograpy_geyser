@@ -9,7 +9,10 @@ from django.db import transaction
 from .serializers import (
     LoginSerializer,
     RegisterSerializer,
-    CustomTokenObtainPairSerializer
+    UserProfileUpdateSerializer,
+    CustomTokenObtainPairSerializer,
+    UpdatePasswordSerializer,
+    UserProfileGetSerializer,
 )
 from .models import (
     OTP
@@ -162,3 +165,41 @@ class VerifyOTP(APIView):
             status=status.HTTP_200_OK
         )
         return response
+
+class UpdateUserProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserProfileGetSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = UserProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "Profile updated successfully",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdatePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        serializer = UpdatePasswordSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

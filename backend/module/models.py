@@ -1,7 +1,10 @@
 from django.db import models
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 import uuid
+
+User = get_user_model()
 
 class CustomTime(models.Model):
     id = models.UUIDField(
@@ -148,4 +151,20 @@ class OptionModulesPair(models.Model):
     def __str__(self):
         return f"{self.module_a} - {self.module_b} (Pair {self.pair_number})"
 
-# class k
+
+class QuizAttend(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+
+    total_questions = models.PositiveIntegerField()
+    correct_answers = models.PositiveIntegerField(default=0)
+
+    xp_gained = models.PositiveIntegerField(default=0)
+    score = models.PositiveIntegerField(default=0)
+    grade = models.CharField(max_length=5, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student} - {self.module}"

@@ -49,7 +49,14 @@ class CreateQuestionView(generics.ListCreateAPIView):
         module_id = self.request.data.get('module')
         if not module_id:
             raise ValidationError({"module": "You must provide a module ID to create a question."})
-        serializer.save()
+
+        try:
+            module = Module.objects.get(id=module_id)
+        except Module.DoesNotExist:
+            raise ValidationError({"module": "Invalid module ID."})
+
+        serializer.save(module=module)
+
 
 class CustomTimeView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]

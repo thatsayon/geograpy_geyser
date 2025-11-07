@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -33,6 +35,50 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    profile_pic = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("full_name", "profile_pic")
+
+    def get_profile_pic(self, obj):
+        if obj.profile_pic:
+            return obj.profile_pic.url    
+        return None
+
+
+class UserProfileGetSerializer(serializers.ModelSerializer):
+    profile_pic = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("full_name", "email", "profile_pic")
+
+    def get_profile_pic(self, obj):
+        return obj.profile_pic.url if obj.profile_pic else None
+
+
+class UpdatePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+
+        if not user.check_password(attrs['old_password']):
+            raise serializers.ValidationError({"old_password": "Wrong password"})
+
+        validate_password(attrs["new_password"])  # uses Django password validators
+
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data["new_password"])  # <-- Proper hashing
+        user.save()
+        return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
