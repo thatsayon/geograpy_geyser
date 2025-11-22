@@ -32,33 +32,45 @@ class QuizStartView(APIView):
             "questions": QuestionSerializer(questions, many=True).data
         }, status=status.HTTP_200_OK)
 
-
 class QuizFinishView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         quiz_id = request.data.get("quiz_id")
         correct = int(request.data.get("correct", 0))
+        attempted = int(request.data.get("attempted", 0))
+
+        if not attempted:
+            return Response({
+                "error": "attempted field needed"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         quiz = get_object_or_404(QuizAttend, id=quiz_id, student=request.user)
 
+        # Save results
         quiz.correct_answers = correct
+        quiz.attempted_questions = attempted
         quiz.score = correct * 10
         quiz.xp_gained = correct * 5
 
-        # Simple grade logic
-        if correct == quiz.total_questions:
-            quiz.grade = "A+"
-        elif correct >= quiz.total_questions * 0.7:
-            quiz.grade = "A"
-        elif correct >= quiz.total_questions * 0.5:
-            quiz.grade = "B"
-        else:
+        # Grade based on accuracy
+        if attempted == 0:
             quiz.grade = "F"
+        else:
+            accuracy = correct / attempted
+            if accuracy == 1.0:
+                quiz.grade = "A+"
+            elif accuracy >= 0.7:
+                quiz.grade = "A"
+            elif accuracy >= 0.5:
+                quiz.grade = "B"
+            else:
+                quiz.grade = "F"
 
         quiz.save()
 
-        all_modules = list(Module.objects.all())
+        # Suggest random modules to attend next
+        all_modules = list(Module.objects.exclude(id=quiz.module.id))
         random_modules = random.sample(all_modules, min(len(all_modules), 3))
         modules_data = ModuleSerializer(random_modules, many=True).data
 

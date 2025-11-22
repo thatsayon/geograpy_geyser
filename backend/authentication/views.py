@@ -203,3 +203,39 @@ class UpdatePasswordView(APIView):
             return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        password = request.data.get("password")
+
+        if not password:
+            return Response(
+                {"error": "Password is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify the user’s password
+        if not user.check_password(password):
+            return Response(
+                {"error": "Invalid password"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        refresh_token = request.data.get("refresh")
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass  # token might already be invalid — that's fine
+
+        user.delete()
+
+        return Response(
+            {"message": "Account deleted successfully"},
+            status=status.HTTP_200_OK
+        )

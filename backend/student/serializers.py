@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from module.models import Questions, QuizAttend, Module
 
 User = get_user_model()
@@ -55,12 +55,14 @@ class SubjectPerformanceSerializer(serializers.ModelSerializer):
         return round(avg_score, 2) if avg_score else 0.0
 
 
+
 class UserPerformanceSerializer(serializers.ModelSerializer):
     total_xp = serializers.SerializerMethodField()
     profile_pic = serializers.SerializerMethodField()
     subjects = serializers.SerializerMethodField()
     quiz_attempted = serializers.SerializerMethodField()
     average_score = serializers.SerializerMethodField()
+    subject_covered = serializers.SerializerMethodField()  # NEW
 
     class Meta:
         model = User
@@ -70,11 +72,12 @@ class UserPerformanceSerializer(serializers.ModelSerializer):
             'total_xp',
             'quiz_attempted',
             'average_score',
-            'subjects'
+            'subjects',
+            'subject_covered',  # include new field
         )
 
     def get_total_xp(self, obj):
-        return QuizAttend.objects.filter(student=obj).aggregate(total=models.Sum('xp_gained'))['total'] or 0
+        return QuizAttend.objects.filter(student=obj).aggregate(total=Sum('xp_gained'))['total'] or 0
 
     def get_profile_pic(self, obj):
         if obj.profile_pic:
@@ -82,7 +85,6 @@ class UserPerformanceSerializer(serializers.ModelSerializer):
         return None
 
     def get_subjects(self, obj):
-        # Only get modules where the user has attempted at least 1 quiz
         module_ids = QuizAttend.objects.filter(student=obj).values_list('module_id', flat=True).distinct()
         modules = Module.objects.filter(id__in=module_ids)
         serializer = SubjectPerformanceSerializer(modules, many=True, context={'user': obj})
@@ -94,3 +96,7 @@ class UserPerformanceSerializer(serializers.ModelSerializer):
     def get_average_score(self, obj):
         avg_score = QuizAttend.objects.filter(student=obj).aggregate(Avg('score'))['score__avg']
         return round(avg_score, 2) if avg_score else 0.0
+
+    # NEW FIELD: total unique subjects attempted
+    def get_subject_covered(self, obj):
+        return QuizAttend.objects.filter(student=obj).values('module').distinct().count()

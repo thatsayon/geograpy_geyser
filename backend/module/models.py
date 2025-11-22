@@ -158,6 +158,7 @@ class QuizAttend(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
 
     total_questions = models.PositiveIntegerField()
+    attempted_questions = models.PositiveIntegerField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
 
     xp_gained = models.PositiveIntegerField(default=0)
