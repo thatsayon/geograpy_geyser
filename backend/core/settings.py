@@ -32,6 +32,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://63dddx70-8000.inc1.devtunnels.ms",
     "https://ballmastery.com",
     "http://72.60.165.202:3000",
+    "https://honeybee-one-octopus.ngrok-free.app",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -49,6 +50,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://63dddx70-8000.inc1.devtunnels.ms",
     "http://localhost:3000",
     "https://ballmastery.com",
+    "https://honeybee-one-octopus.ngrok-free.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
