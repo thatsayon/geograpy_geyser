@@ -12,6 +12,12 @@ from .views import (
 
     CustomTimeListView,
     CustomTimeView,
+
+    StudentManageListView,
+    StudentDashboardView,
+    BlockUserView,
+
+    AdminDashboardView,
 )
     
 urlpatterns = [
@@ -26,4 +32,11 @@ urlpatterns = [
     # quiz duration
     path('quiz-duration/', CustomTimeListView.as_view(), name='Custom Time List'),
     path('quiz-duration/<uuid:id>/', CustomTimeView.as_view(), name='Custom Time'),
+
+    # student management
+    path('student-list/', StudentManageListView.as_view(), name='Student List'),
+    path('student-detail/', StudentDashboardView.as_view(), name='student-detail'),
+    path('ban-user/', BlockUserView.as_view(), name='Block User'),
+
+    path('dashboard/', AdminDashboardView.as_view(), name='Block User'),
 ]

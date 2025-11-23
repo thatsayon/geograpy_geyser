@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count, Sum, Q, Value, IntegerField, Avg, FloatField
+from django.db.models.functions import Coalesce
 
 from rest_framework import serializers
 
@@ -55,3 +57,27 @@ class CustomTimeSerializer(serializers.ModelSerializer):
             'duration'
         )
         read_only_fields = ('id',)
+
+class StudentManageSerializer(serializers.ModelSerializer):
+    profile_pic = serializers.SerializerMethodField()
+    quiz_attempts = serializers.IntegerField(read_only=True)
+    xp = serializers.IntegerField(read_only=True)
+    active_subjects = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'profile_pic',
+            'full_name',
+            'quiz_attempts',
+            'xp',
+            'active_subjects',
+        )
+
+    def get_profile_pic(self, obj):
+        request = self.context.get('request')
+        if obj.profile_pic and hasattr(obj.profile_pic, 'url'):
+            return request.build_absolute_uri(obj.profile_pic.url)
+        return None
