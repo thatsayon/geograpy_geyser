@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status, generics
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Sum, Q, Value, IntegerField, Avg, FloatField
-from django.db.models.functions import Coalesce
+from django.db.models import Count, Sum, Q, Value, IntegerField, Avg, FloatField, Max, ExpressionWrapper, F
+from django.db.models.functions import Coalesce, ExtractMonth
 from django.utils import timezone
 from datetime import timedelta
 
@@ -24,6 +24,9 @@ from .serializers import (
     CustomTimeSerializer,
 
     StudentManageSerializer,
+
+    ModuleStatsSerializer,
+    ModuleUpdateSerializer,
 )
 
 User = get_user_model()
@@ -509,3 +512,68 @@ class AdminDashboardView(APIView):
             })
         
         return subject_performance
+
+
+class ModuleUpdateView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = ModuleUpdateSerializer
+    lookup_field = 'id'
+    queryset = Module.objects.all()
+
+class ModuleStatsView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ModuleStatsSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Module.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        module = self.get_object()
+        student = request.user
+
+        queryset = QuizAttend.objects.filter(module=module, student=student)
+
+        quiz_attempted = queryset.count()
+        average_score = queryset.aggregate(avg=Avg('score'))['avg'] or 0
+        top_score = queryset.aggregate(max=Max('score'))['max'] or 0
+
+        # Monthly accuracy: (correct / attempted * 100)
+        monthly_data = (
+            queryset
+            .annotate(month=ExtractMonth('created_at'))
+            .values('month')
+            .annotate(
+                accuracy=Avg(
+                    ExpressionWrapper(
+                        F('correct_answers') * 100.0 / F('attempted_questions'),
+                        output_field=FloatField()
+                    )
+                )
+            )
+            .order_by('month')
+        )
+
+        month_names = [
+            "Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec"
+        ]
+
+        monthly_accuracy = [
+            {
+                "month": month_names[m['month']-1],
+                "accuracy": round(m['accuracy'], 2)
+            }
+            for m in monthly_data if m['month']
+        ]
+
+        data = {
+            "module_name": module.module_name,
+            "quiz_attempted": quiz_attempted,
+            "average_score": round(average_score, 2),
+            "top_score": top_score,
+            "monthly_accuracy": monthly_accuracy
+        }
+
+        serializer = self.get_serializer(data)
+        return Response(serializer.data)

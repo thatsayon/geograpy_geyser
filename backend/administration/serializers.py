@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from module.models import (
     CustomTime,
+    Module,
 )
 
 User = get_user_model()
@@ -81,3 +82,23 @@ class StudentManageSerializer(serializers.ModelSerializer):
         if obj.profile_pic and hasattr(obj.profile_pic, 'url'):
             return request.build_absolute_uri(obj.profile_pic.url)
         return None
+
+
+class ModuleUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = (
+            'id',
+            'module_name'
+        )
+        read_only_fields = (
+            'id',
+        )
+
+class ModuleStatsSerializer(serializers.Serializer):
+    module_name = serializers.CharField()
+    quiz_attempted = serializers.IntegerField()
+    average_score = serializers.FloatField()
+    top_score = serializers.IntegerField()
+    monthly_accuracy = serializers.ListField()
+

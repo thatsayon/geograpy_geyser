@@ -18,11 +18,17 @@ from .views import (
     BlockUserView,
 
     AdminDashboardView,
+
+    ModuleStatsView,
+    ModuleUpdateView,
 )
     
 urlpatterns = [
     path('modules/', CreateModuleView.as_view(), name='Modules'),
     path('modules/<uuid:id>/delete/', DeleteModuleView.as_view(), name='Delete Module'),
+    path('modules-detail/<uuid:id>/', ModuleStatsView.as_view(), name='Module Detail'),
+    path('modules-update/<uuid:id>/', ModuleUpdateView.as_view(), name='Module Detail'),
+
     path('questions/', CreateQuestionView.as_view(), name='Questions'),
 
     # profile urls
