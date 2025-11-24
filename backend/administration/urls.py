@@ -21,6 +21,11 @@ from .views import (
 
     ModuleStatsView,
     ModuleUpdateView,
+
+    QuestionUpdateView,
+
+    OptionModulesPairView,
+    OptionModulesPairDetailView,
 )
     
 urlpatterns = [
@@ -29,7 +34,13 @@ urlpatterns = [
     path('modules-detail/<uuid:id>/', ModuleStatsView.as_view(), name='Module Detail'),
     path('modules-update/<uuid:id>/', ModuleUpdateView.as_view(), name='Module Detail'),
 
+    # question urls
     path('questions/', CreateQuestionView.as_view(), name='Questions'),
+    path('questions/<uuid:id>/', QuestionUpdateView.as_view(), name='Questions'),
+
+    # optional module urls
+    path('optional-module-pair/', OptionModulesPairView.as_view(), name='Option Module'),
+    path('optional-module-pair/<uuid:id>/', OptionModulesPairDetailView.as_view(), name='Option Module Delete'),
 
     # profile urls
     path('profile-information/', ProfileInformationView.as_view(), name='Profile Information'),

@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import permissions, status, generics
+from rest_framework.exceptions import ValidationError
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Q, Value, IntegerField, Avg, FloatField, Max, ExpressionWrapper, F
@@ -15,6 +16,8 @@ from module.models import (
     CustomTime,
     QuizAttend,
     Module,
+    Questions,
+    OptionModulesPair,
 )
 
 from .serializers import (
@@ -27,6 +30,10 @@ from .serializers import (
 
     ModuleStatsSerializer,
     ModuleUpdateSerializer,
+
+    QuestionUpdateSerializer,
+
+    OptionModulesPairSerializer,
 )
 
 User = get_user_model()
@@ -166,7 +173,7 @@ class StudentDashboardView(APIView):
     permission_classes = [permissions.IsAdminUser]
     
     def get(self, request):
-        user_id = request.data.get('user_id')
+        user_id = request.query_params.get('user_id')
 
         user = User.objects.filter(id=user_id).first()
         
@@ -423,7 +430,7 @@ class AdminDashboardView(APIView):
                     accuracy_value = 0
                 
                 accuracy_data.append({
-                    'label': f"{hour_start.hour}:00",
+                    'month': f"{hour_start.hour}:00",
                     'value': accuracy_value
                 })
         
@@ -577,3 +584,42 @@ class ModuleStatsView(generics.RetrieveAPIView):
 
         serializer = self.get_serializer(data)
         return Response(serializer.data)
+
+class QuestionUpdateView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    queryset = Questions.objects.all()
+    serializer_class = QuestionUpdateSerializer
+    lookup_field = 'id'
+
+    def perform_update(self, serializer):
+        validated_data = serializer.validated_data
+
+        # correct_answer is one of: option1, option2, option3, option4
+        correct_key = validated_data.get('correct_answer')
+
+        # # But still ensure the actual option text exists
+        # option_value = validated_data.get(correct_key)
+        # if not option_value:
+        #     raise ValidationError({
+        #         "correct_answer": "The selected option has no value."
+        #     })
+
+        serializer.save()
+
+
+class OptionModulesPairView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = OptionModulesPairSerializer
+
+    def get_queryset(self):
+        module_id = self.request.query_params.get('module')
+        queryset = OptionModulesPair.objects.all()
+        if module_id:
+            queryset = queryset.filter(module_a__id=module_id) | queryset.filter(module_b__id=module_id)
+        return queryset.order_by('pair_number')
+
+class OptionModulesPairDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    queryset = OptionModulesPair.objects.all()
+    serializer_class = OptionModulesPairSerializer
+    lookup_field = 'id'

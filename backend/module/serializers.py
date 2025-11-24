@@ -26,6 +26,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             'option2',
             'option3',
             'option4',
+            'correct_answer',
             'order'
         )
 

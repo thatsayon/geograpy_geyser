@@ -3,6 +3,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import generics, status, permissions
 
+from django.db.models import Q
+
 from .models import (
     Module,
     Questions,
@@ -43,7 +45,27 @@ class CreateQuestionView(generics.ListCreateAPIView):
         module_id = self.request.query_params.get('module')
         if not module_id:
             raise ValidationError({"module": "This query parameter is required."})
-        return Questions.objects.filter(module_id=module_id).order_by('order')
+
+        search = self.request.query_params.get('search', '')
+
+        queryset = Questions.objects.filter(module_id=module_id)
+
+        if search:
+            queryset = queryset.filter(
+                Q(question_text__icontains=search) |
+                Q(option1__icontains=search) |
+                Q(option2__icontains=search) |
+                Q(option3__icontains=search) |
+                Q(option4__icontains=search) |
+                Q(correct_answer__icontains=search)
+            )
+
+        return queryset.order_by('order')
+    # def get_queryset(self):
+    #     module_id = self.request.query_params.get('module')
+    #     if not module_id:
+    #         raise ValidationError({"module": "This query parameter is required."})
+    #     return Questions.objects.filter(module_id=module_id).order_by('order')
 
     def perform_create(self, serializer):
         module_id = self.request.data.get('module')

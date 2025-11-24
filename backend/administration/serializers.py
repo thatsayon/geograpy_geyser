@@ -7,6 +7,8 @@ from rest_framework import serializers
 from module.models import (
     CustomTime,
     Module,
+    Questions,
+    OptionModulesPair,
 )
 
 User = get_user_model()
@@ -101,4 +103,56 @@ class ModuleStatsSerializer(serializers.Serializer):
     average_score = serializers.FloatField()
     top_score = serializers.IntegerField()
     monthly_accuracy = serializers.ListField()
+
+
+class QuestionUpdateSerializer(serializers.ModelSerializer):
+    correct_answer = serializers.ChoiceField(
+        choices=["option1", "option2", "option3", "option4"]
+    )
+
+    class Meta:
+        model = Questions
+        fields = (
+            'id',
+            'module',
+            'question_text',
+            'option1',
+            'option2',
+            'option3',
+            'option4',
+            'correct_answer',
+            'order',
+        )
+        read_only_fields = (
+            'id', 
+            'module'
+        )
+
+class OptionModulesPairSerializer(serializers.ModelSerializer):
+    pair_number = serializers.IntegerField(read_only=True)  # auto-assigned
+
+    class Meta:
+        model = OptionModulesPair
+        fields = ['id', 'module_a', 'module_b', 'pair_number']
+
+    def validate(self, data):
+        module_a = data.get('module_a')
+        module_b = data.get('module_b')
+
+        if module_a == module_b:
+            raise serializers.ValidationError("Module A and Module B cannot be the same.")
+
+        # Ensure the pair doesn't already exist in either order
+        if OptionModulesPair.objects.filter(module_a=module_a, module_b=module_b).exists() or \
+           OptionModulesPair.objects.filter(module_a=module_b, module_b=module_a).exists():
+            raise serializers.ValidationError("This module pair already exists.")
+
+        return data
+
+    def create(self, validated_data):
+        # Assign next available pair_number automatically
+        last_pair = OptionModulesPair.objects.order_by('-pair_number').first()
+        next_pair_number = (last_pair.pair_number if last_pair else 0) + 1
+        validated_data['pair_number'] = next_pair_number
+        return super().create(validated_data)
 
