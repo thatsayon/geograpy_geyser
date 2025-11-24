@@ -66,6 +66,7 @@ class StudentManageSerializer(serializers.ModelSerializer):
     quiz_attempts = serializers.IntegerField(read_only=True)
     xp = serializers.IntegerField(read_only=True)
     active_subjects = serializers.IntegerField(read_only=True)
+    is_banned = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -77,6 +78,7 @@ class StudentManageSerializer(serializers.ModelSerializer):
             'quiz_attempts',
             'xp',
             'active_subjects',
+            'is_banned',
         )
 
     def get_profile_pic(self, obj):
@@ -84,6 +86,11 @@ class StudentManageSerializer(serializers.ModelSerializer):
         if obj.profile_pic and hasattr(obj.profile_pic, 'url'):
             return request.build_absolute_uri(obj.profile_pic.url)
         return None
+
+    def get_is_banned(self, obj):
+        if obj.is_active:
+            return False
+        return True
 
 
 class ModuleUpdateSerializer(serializers.ModelSerializer):

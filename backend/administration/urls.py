@@ -16,6 +16,7 @@ from .views import (
     StudentManageListView,
     StudentDashboardView,
     BlockUserView,
+    UnblockUserView,
 
     AdminDashboardView,
 
@@ -54,6 +55,7 @@ urlpatterns = [
     path('student-list/', StudentManageListView.as_view(), name='Student List'),
     path('student-detail/', StudentDashboardView.as_view(), name='student-detail'),
     path('ban-user/', BlockUserView.as_view(), name='Block User'),
+    path('unban-user/', UnblockUserView.as_view(), name='Un-Block User'),
 
     path('dashboard/', AdminDashboardView.as_view(), name='Block User'),
 ]

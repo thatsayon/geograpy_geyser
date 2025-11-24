@@ -1,4 +1,7 @@
 from rest_framework import serializers
+
+from django.db.models import Q
+
 from .models import (
     Module,
     Questions,
@@ -8,12 +11,21 @@ from .models import (
 )
 
 class ModuleSerializer(serializers.ModelSerializer):
+    is_optional = serializers.SerializerMethodField()
+
     class Meta:
         model = Module
         fields = (
             'id',
-            'module_name'
+            'module_name',
+            'is_optional',
         )
+
+    def get_is_optional(self, obj):
+        return OptionModulesPair.objects.filter(
+            Q(module_a=obj) | Q(module_b=obj)
+        ).exists()
+
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:

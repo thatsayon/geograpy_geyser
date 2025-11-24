@@ -160,7 +160,23 @@ class BlockUserView(APIView):
             "msg": "User is banned"
         }, status=status.HTTP_200_OK)
 
+class UnblockUserView(APIView):
+    permission_classes = [permissions.IsAdminUser]
 
+    def post(self, request):
+        user_id = request.data.get('user_id')
+
+        if not user_id:
+            return Response({
+                "error": "user_id field required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(id=user_id).first()
+        user.is_active = True
+        user.save()
+        return Response({
+            "msg": "User is unbanned"
+        }, status=status.HTTP_200_OK)
 
 class StudentDashboardView(APIView):
     """
