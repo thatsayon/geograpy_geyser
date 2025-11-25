@@ -70,6 +70,7 @@ INSTALLED_APPS = [
 # local apps
 INSTALLED_APPS += [
     'authentication',
+    'administration',
     'module',
     'account',
     'student',

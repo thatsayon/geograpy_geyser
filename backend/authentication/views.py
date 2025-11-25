@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model, authenticate
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
+from account.models import OptionalModule
+
 from .serializers import (
     LoginSerializer,
     RegisterSerializer,
@@ -53,10 +55,13 @@ class LoginView(APIView):
         refresh = CustomTokenObtainPairSerializer.get_token(user) 
         access = refresh.access_token
 
+        is_optional_module_selected = OptionalModule.objects.filter(student=user).exists()
+
         response = Response(
             {
                 "access_token": str(access),
-                "refresh_token": str(refresh)
+                "refresh_token": str(refresh),
+                "is_optional_module_selected": is_optional_module_selected
             },
             status=status.HTTP_200_OK,
         )

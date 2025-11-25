@@ -11,6 +11,8 @@ from module.models import (
     OptionModulesPair,
 )
 
+from .models import SynopticModule
+
 User = get_user_model()
 
 class ProfileInformationSerializer(serializers.ModelSerializer):
@@ -163,3 +165,28 @@ class OptionModulesPairSerializer(serializers.ModelSerializer):
         validated_data['pair_number'] = next_pair_number
         return super().create(validated_data)
 
+
+class SynopticModuleSerializer(serializers.ModelSerializer):
+    module_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True
+    )
+    modules = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SynopticModule
+        fields = ['id', 'modules', 'module_ids']
+
+    def get_modules(self, obj):
+        return [{"id": m.id, "module_name": m.module_name} for m in obj.modules.all()]
+
+    def validate_module_ids(self, value):
+        if not (2 <= len(value) <= 4):
+            raise serializers.ValidationError("You must select 3 or 4 modules for the Synoptic module.")
+        return value
+
+    def create(self, validated_data):
+        module_ids = validated_data.pop('module_ids')
+        synoptic_module = SynopticModule.objects.create()
+        synoptic_module.modules.set(Module.objects.filter(id__in=module_ids))
+        return synoptic_module

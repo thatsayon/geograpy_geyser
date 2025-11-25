@@ -30,6 +30,8 @@ from .views import (
 
     DownloadDemoCSVView,
     UploadQuestionsCSVView,
+
+    CreateSynopticModuleView,
 )
     
 urlpatterns = [
@@ -37,6 +39,7 @@ urlpatterns = [
     path('modules/<uuid:id>/delete/', DeleteModuleView.as_view(), name='Delete Module'),
     path('modules-detail/<uuid:id>/', ModuleStatsView.as_view(), name='Module Detail'),
     path('modules-update/<uuid:id>/', ModuleUpdateView.as_view(), name='Module Detail'),
+    path('synoptic-module/', CreateSynopticModuleView.as_view(), name='Synoptic Module'),
 
     # question urls
     path('questions/', CreateQuestionView.as_view(), name='Questions'),

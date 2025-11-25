@@ -23,7 +23,7 @@ from .serializers import (
 class CreateModuleView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ModuleSerializer
-    queryset = Module.objects.all()
+    queryset = Module.objects.all().order_by('module_name')
 
 class DeleteModuleView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]

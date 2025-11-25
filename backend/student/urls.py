@@ -4,13 +4,24 @@ from module.views import (
     CustomTimeView,
     OptionModulesPairView,
 )
-from .views import QuizStartView, QuizFinishView, StudentStatsView, DeductQuizXPView, UserPerformanceView
+from account.views import (
+    OptionalModulesView,
+)
+from .views import (
+    QuizStartView, 
+    SynopticQuizStartView,
+    QuizFinishView, 
+    StudentStatsView, 
+    DeductQuizXPView, 
+    UserPerformanceView,
+)
 
 urlpatterns = [
     path('module-list/', CreateModuleView.as_view()),
     path('time-list/', CustomTimeView.as_view()),
-    path('optional-module/', OptionModulesPairView.as_view()),
+    path('optional-module/', OptionalModulesView.as_view()),
     path("quiz-start/", QuizStartView.as_view()),
+    path("synoptic-quiz-start/", SynopticQuizStartView.as_view()),
     path("quiz-finish/", QuizFinishView.as_view()),
     path("student-state/", StudentStatsView.as_view()),
     path("delete-xp/", DeductQuizXPView.as_view()),

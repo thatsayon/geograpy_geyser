@@ -7,6 +7,7 @@ from django.db.models import Avg, Sum, Count
 from django.utils.timezone import localdate
 from datetime import timedelta
 from module.models import Module, Questions, QuizAttend
+from administration.models import SynopticModule
 from module.serializers import ModuleSerializer
 from .serializers import QuestionSerializer, QuizAttendSerializer, SubjectPerformanceSerializer, UserPerformanceSerializer
 import random
@@ -16,21 +17,57 @@ class QuizStartView(APIView):
 
     def post(self, request):
         module_id = request.data.get("module_id")
-        total_questions = int(request.data.get("quantity", 10))
-
         module = get_object_or_404(Module, id=module_id)
 
+        questions = Questions.objects.filter(module=module).order_by("?")  # all questions in random order
+
+        # Create quiz attempt
         quiz = QuizAttend.objects.create(
             student=request.user,
             module=module,
-            total_questions=total_questions,
+            total_questions=questions.count(),  # total questions = all questions in module
         )
 
-        questions = Questions.objects.filter(module=module).order_by("?")[:total_questions]
         return Response({
             "quiz_id": quiz.id,
             "questions": QuestionSerializer(questions, many=True).data
         }, status=status.HTTP_200_OK)
+
+
+class SynopticQuizStartView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        synoptic = SynopticModule.objects.first()
+        if not synoptic:
+            return Response(
+                {"error": "Synoptic module is not configured"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Load underlying modules
+        underlying_modules = synoptic.modules.all()
+
+        # Get all combined questions
+        questions = Questions.objects.filter(
+            module__in=underlying_modules
+        ).order_by("?")
+
+        # Ensure Synoptic placeholder module exists
+        synoptic_main_module = synoptic.get_main_module()
+
+        quiz = QuizAttend.objects.create(
+            student=request.user,
+            module=synoptic_main_module,
+            total_questions=questions.count()
+        )
+
+        return Response({
+            "quiz_id": quiz.id,
+            "is_synoptic": True,
+            "questions": QuestionSerializer(questions, many=True).data
+        }, status=status.HTTP_200_OK)
+
 
 class QuizFinishView(APIView):
     permission_classes = [permissions.IsAuthenticated]

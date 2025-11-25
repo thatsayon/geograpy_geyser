@@ -37,7 +37,11 @@ from .serializers import (
     QuestionUpdateSerializer,
 
     OptionModulesPairSerializer,
+
+    SynopticModuleSerializer,
 )
+
+from .models import SynopticModule
 
 import os
 import csv
@@ -708,3 +712,9 @@ class UploadQuestionsCSVView(APIView):
 
         return Response({"message": f"{created_count} questions imported successfully."},
                         status=status.HTTP_201_CREATED)
+
+
+class CreateSynopticModuleView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = SynopticModuleSerializer
+    queryset = SynopticModule.objects.all()

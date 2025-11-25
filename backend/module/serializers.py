@@ -8,10 +8,14 @@ from .models import (
     CustomTime,
     QuestionQuantity,
     OptionModulesPair,
+    QuizAttend,
 )
 
 class ModuleSerializer(serializers.ModelSerializer):
     is_optional = serializers.SerializerMethodField()
+    questions_count = serializers.SerializerMethodField()
+    top_score = serializers.SerializerMethodField()
+    attended = serializers.SerializerMethodField()
 
     class Meta:
         model = Module
@@ -19,12 +23,26 @@ class ModuleSerializer(serializers.ModelSerializer):
             'id',
             'module_name',
             'is_optional',
+            'questions_count',
+            'top_score',
+            'attended',
         )
 
     def get_is_optional(self, obj):
         return OptionModulesPair.objects.filter(
             Q(module_a=obj) | Q(module_b=obj)
         ).exists()
+
+    def get_questions_count(self, obj):
+        return obj.questions.count()
+
+    def get_top_score(self, obj):
+        top = QuizAttend.objects.filter(module=obj).order_by('-score').first()
+        return top.score if top else 0
+
+    def get_attended(self, obj):
+        return QuizAttend.objects.filter(module=obj).count()
+
 
 
 class QuestionSerializer(serializers.ModelSerializer):
