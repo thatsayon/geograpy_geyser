@@ -27,6 +27,9 @@ from .views import (
 
     OptionModulesPairView,
     OptionModulesPairDetailView,
+
+    DownloadDemoCSVView,
+    UploadQuestionsCSVView,
 )
     
 urlpatterns = [
@@ -56,6 +59,9 @@ urlpatterns = [
     path('student-detail/', StudentDashboardView.as_view(), name='student-detail'),
     path('ban-user/', BlockUserView.as_view(), name='Block User'),
     path('unban-user/', UnblockUserView.as_view(), name='Un-Block User'),
+
+    path('demo-csv/', DownloadDemoCSVView.as_view(), name='Demo CSV'),
+    path('upload-csv/<uuid:module_id>/', UploadQuestionsCSVView.as_view(), name='Upload CSV'),
 
     path('dashboard/', AdminDashboardView.as_view(), name='Block User'),
 ]

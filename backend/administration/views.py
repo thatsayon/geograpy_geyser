@@ -6,10 +6,13 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Q, Value, IntegerField, Avg, FloatField, Max, ExpressionWrapper, F
 from django.db.models.functions import Coalesce, ExtractMonth
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.http import FileResponse
+from django.conf import settings
+from django.db import transaction
+
 from datetime import timedelta
-
-
 from calendar import month_abbr
 
 from module.models import (
@@ -35,6 +38,9 @@ from .serializers import (
 
     OptionModulesPairSerializer,
 )
+
+import os
+import csv
 
 User = get_user_model()
 
@@ -639,3 +645,66 @@ class OptionModulesPairDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OptionModulesPair.objects.all()
     serializer_class = OptionModulesPairSerializer
     lookup_field = 'id'
+
+class DownloadDemoCSVView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    
+    def get(self, request):
+        file_path = os.path.join(settings.BASE_DIR, 'demo.csv')
+
+        if not os.path.exists(file_path):
+            return HttpResponse("File not found", status=404)
+
+        return FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=True,
+            filename='demo.csv'
+        )
+
+
+class UploadQuestionsCSVView(APIView):
+    permission_classes = [permissions.IsAdminUser] 
+
+    def post(self, request, module_id):
+        module = get_object_or_404(Module, id=module_id)
+
+        csv_file = request.FILES.get('file')
+        if not csv_file:
+            return Response({"error": "CSV file is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not csv_file.name.endswith('.csv'):
+            return Response({"error": "File must be a .csv"}, status=status.HTTP_400_BAD_REQUEST)
+
+        decoded_file = csv_file.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        created_count = 0
+
+        with transaction.atomic():
+            for idx, row in enumerate(reader, start=1):
+
+                # Skip empty rows
+                if not row.get("question") or row.get("question").strip() == "":
+                    continue
+
+                correct = row.get("correct_answer")
+                if correct not in ["option1", "option2", "option3", "option4"]:
+                    return Response(
+                        {"error": f"Invalid correct_answer at row {idx}: {correct}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                Questions.objects.create(
+                    module=module,
+                    question_text=row.get("question").strip(),
+                    option1=row.get("option1", "").strip(),
+                    option2=row.get("option2", "").strip(),
+                    option3=row.get("option3", "").strip(),
+                    option4=row.get("option4", "").strip(),
+                    correct_answer=correct
+                )
+
+                created_count += 1
+
+        return Response({"message": f"{created_count} questions imported successfully."},
+                        status=status.HTTP_201_CREATED)

@@ -211,3 +211,23 @@ cloudinary.config(
     api_secret = CLOUDINARY_STORAGE['API_SECRET']
 )
 
+# Redis as broker
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# optional settings
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# email setup
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'no-reply@mathos.cloud'
+EMAIL_HOST_PASSWORD = 'Ayon28@gmail.com'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
