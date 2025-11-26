@@ -30,6 +30,7 @@ class QuizStartView(APIView):
 
         return Response({
             "quiz_id": quiz.id,
+            "is_synoptic": False,
             "questions": QuestionSerializer(questions, many=True).data
         }, status=status.HTTP_200_OK)
 
